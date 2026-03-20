@@ -1,1 +1,3 @@
 # PTGprimerDesigner
+🧬 PTG Primer Designer · ICAR–IARI Genome Editing Lab · Based on Xie et al., PNAS 2015 · No dependencies · Pure HTML/JS
+A lightweight, browser-based tool for designing Golden Gate assembly primers for Polycistronic tRNA-gRNA (PTG) genes used in CRISPR/Cas9 multiplex genome editing. Given a 20 bp spacer sequence (5′→3′, upstream of NGG PAM), it instantly generates colour-annotated forward and reverse primers following the exact design rules of Xie et al. (PNAS 2015) — including BsaI site orientation, configurable 4 bp overhang position, gRNA scaffold and tRNA anchor sequences, and automatic flagging of forbidden overhangs (GGCA, AAAC). Built for plant genome editing research with no dependencies or installation required.
