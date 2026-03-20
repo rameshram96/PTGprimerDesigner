@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PTG Primer Designer — Xie et al. 2015</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:        #f4f6f9;
+    --surface:   #ffffff;
+    --surface2:  #f0f4f8;
+    --border:    #dde3ec;
+    --border2:   #c8d1de;
+    --primary:   #1a56db;
+    --primary-lt:#e8effe;
+    --primary-dk:#1240a8;
+    --green:     #0a7c53;
+    --green-lt:  #e6f4ee;
+    --orange:    #b94f08;
+    --orange-lt: #fef0e6;
+    --amber:     #92580a;
+    --amber-lt:  #fef9e6;
+    --red:       #c0392b;
+    --red-lt:    #fde8e6;
+    --text:      #0f1928;
+    --text2:     #3d4f66;
+    --muted:     #7a8fa8;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'IBM Plex Sans', sans-serif;
+    --radius:    8px;
+    --shadow-sm: 0 1px 3px rgba(15,25,40,0.07), 0 1px 2px rgba(15,25,40,0.04);
+    --shadow:    0 4px 12px rgba(15,25,40,0.08), 0 1px 3px rgba(15,25,40,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+
+  .topbar-logo {
+    width: 30px; height: 30px;
+    background: var(--primary);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 10px; font-weight: 600; letter-spacing: -0.5px;
+  }
+
+  .topbar-name { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
+
+  .topbar-ref {
+    font-size: 11px; color: var(--muted);
+    font-family: var(--mono);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  .container { max-width: 880px; margin: 0 auto; padding: 36px 24px 72px; }
+
+  .page-heading { margin-bottom: 32px; }
+
+  .page-heading h1 {
+    font-size: 26px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.5px; margin-bottom: 4px;
+  }
+
+  .page-heading h1 span { color: var(--primary); }
+  .page-heading p { font-size: 13px; color: var(--muted); }
+
+  .step-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.6px;
+    text-transform: uppercase; color: var(--primary); margin-bottom: 16px;
+  }
+
+  .step-pill .num {
+    width: 20px; height: 20px;
+    background: var(--primary); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .input-group { margin-bottom: 20px; }
+
+  label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--text2); letter-spacing: 0.2px; margin-bottom: 6px;
+  }
+
+  .label-hint { font-weight: 400; color: var(--muted); font-size: 11px; margin-left: 6px; }
+
+  .input-wrap { position: relative; }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 56px 10px 14px;
+    font-family: var(--mono);
+    font-size: 14px; color: var(--text);
+    letter-spacing: 1.2px; outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+  }
+
+  input[type="text"].valid   { border-color: var(--green);  box-shadow: 0 0 0 3px rgba(10,124,83,0.08); }
+  input[type="text"].invalid { border-color: var(--red);    box-shadow: 0 0 0 3px rgba(192,57,43,0.08); }
+
+  #grna-id { font-family: var(--sans); letter-spacing: 0; }
+
+  .char-counter {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-family: var(--mono); font-size: 11px; color: var(--muted);
+    pointer-events: none; font-weight: 500;
+  }
+
+  .char-counter.ok  { color: var(--green); }
+  .char-counter.bad { color: var(--red); }
+
+  .error-msg { display: none; font-size: 12px; color: var(--red); margin-top: 5px; font-family: var(--mono); }
+  .error-msg.show { display: block; }
+
+  .overhang-section { display: flex; gap: 14px; align-items: flex-end; }
+
+  .overhang-viz {
+    flex: 1;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 11px 14px;
+    font-family: var(--mono);
+    font-size: 14px; letter-spacing: 2px;
+    min-height: 46px;
+    display: flex; align-items: center; gap: 1px;
+    flex-wrap: wrap; line-height: 1.8;
+  }
+
+  .nt { display: inline-block; transition: color 0.15s; }
+  .nt.oh     { color: var(--primary); background: var(--primary-lt); border-radius: 2px; padding: 0 1px; font-weight: 600; }
+  .nt.f-only { color: var(--green); }
+  .nt.r-only { color: var(--orange); }
+
+  .slider-group { flex: 0 0 190px; }
+
+  .slider-label {
+    font-size: 11px; color: var(--muted); font-weight: 500;
+    margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+
+  .slider-label strong { color: var(--primary); font-family: var(--mono); }
+
+  input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+
+  .viz-legend { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+
+  .viz-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+
+  .viz-legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 12px 20px;
+    background: var(--primary); color: #fff;
+    font-family: var(--sans); font-weight: 600; font-size: 14px;
+    border: none; border-radius: 6px; cursor: pointer;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+    margin-top: 22px; letter-spacing: 0.1px;
+  }
+
+  .btn:hover { background: var(--primary-dk); box-shadow: 0 4px 14px rgba(26,86,219,0.25); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); box-shadow: none; }
+  .btn:disabled { background: var(--border2); color: var(--muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+  #results { display: none; }
+  #results.show { display: block; }
+
+  .primer-block { margin-bottom: 18px; }
+
+  .primer-label { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+
+  .tag {
+    display: inline-block; padding: 2px 9px;
+    border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  }
+
+  .tag-f { background: var(--green-lt);  color: var(--green);  border: 1px solid rgba(10,124,83,0.2); }
+  .tag-r { background: var(--orange-lt); color: var(--orange); border: 1px solid rgba(185,79,8,0.2); }
+
+  .primer-name { font-size: 12px; color: var(--muted); font-family: var(--mono); font-weight: 500; }
+
+  .primer-seq-wrap {
+    position: relative;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 13px 48px 13px 16px;
+    font-family: var(--mono); font-size: 14px;
+    letter-spacing: 1.5px; word-break: break-all; line-height: 1.8;
+    transition: border-color 0.2s;
+  }
+
+  .primer-seq-wrap:hover { border-color: var(--border2); }
+
+  .copy-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 5px;
+    width: 30px; height: 30px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; transition: all 0.18s;
+  }
+
+  .copy-btn:hover  { border-color: var(--primary); color: var(--primary); background: var(--primary-lt); }
+  .copy-btn.copied { border-color: var(--green);   color: var(--green);   background: var(--green-lt); }
+
+  .seq-random   { color: #b0bdd0; }
+  .seq-bsai     { color: var(--amber); font-weight: 600; }
+  .seq-overhang { color: var(--primary); font-weight: 700; background: var(--primary-lt); border-radius: 2px; padding: 0 1px; }
+  .seq-spacer   { color: var(--text); }
+  .seq-scaffold { color: var(--green); }
+  .seq-trna     { color: var(--orange); }
+
+  .seq-legend {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .seq-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .seq-legend-dot  { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  .checks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  @media (max-width: 520px) { .checks-grid { grid-template-columns: 1fr; } }
+
+  .check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 11px 13px;
+  }
+
+  .check-item.ok   { border-left: 3px solid var(--green); }
+  .check-item.warn { border-left: 3px solid var(--amber); background: var(--amber-lt); }
+
+  .check-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .check-name { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .check-val  { font-family: var(--mono); font-size: 12px; color: var(--text); word-break: break-all; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+  thead tr { background: var(--surface2); }
+
+  th {
+    text-align: left; padding: 9px 12px;
+    color: var(--text2); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.4px; text-transform: uppercase;
+    border-bottom: 2px solid var(--border); white-space: nowrap;
+  }
+
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  td.mono { font-family: var(--mono); letter-spacing: 0.8px; font-size: 12px; word-break: break-all; }
+
+  #history-section { display: none; }
+  #history-section.show { display: block; }
+
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 13px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 5px; margin-bottom: 7px;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+
+  .history-item:hover { border-color: var(--primary); background: var(--primary-lt); }
+  .history-spacer { font-family: var(--mono); font-size: 12px; color: var(--text); letter-spacing: 1px; }
+  .history-meta   { font-size: 11px; color: var(--muted); }
+
+  .info-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 18px 22px; margin-top: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .info-box-title {
+    font-size: 12px; font-weight: 700; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+  }
+
+  .info-row { font-family: var(--mono); font-size: 12px; color: var(--text2); margin-bottom: 6px; line-height: 1.7; }
+
+  .info-note {
+    font-size: 11px; color: var(--muted);
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal { animation: fadeUp 0.35s ease forwards; }
+
+  @keyframes highlight {
+    0%,100% { background: var(--surface); }
+    40%     { background: #edf2ff; }
+  }
+
+  .flash { animation: highlight 0.5s ease; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">PTG</div>
+    <span class="topbar-name">Primer Designer for PTG Assembly</span>
+  </div>
+  <span class="topbar-ref"> <a href="www.pnas.org/cgi/doi/10.1073/pnas.1420294112">Xie et al. · PNAS 2015</a></span>
+</div>
+
+<div class="container">
+
+  <div class="page-heading">
+    <h1>tRNA–gRNA <span>Primer</span> Generator</h1>
+    <p>Design Golden Gate assembly primers for Polycistronic tRNA-gRNA (PTG) gene construction</p>
+  </div>
+
+  <!-- Input card -->
+  <div class="card">
+    <div class="step-pill"><span class="num">1</span> Spacer Input</div>
+
+    <div class="input-group">
+      <label>20 bp Spacer Sequence <span class="label-hint">5′ → 3′, upstream of NGG PAM</span></label>
+      <div class="input-wrap">
+        <input type="text" id="spacer-input" placeholder="e.g. GAGGAAGTAACTCATAAATA" maxlength="20" autocomplete="off" spellcheck="false">
+        <span class="char-counter" id="char-counter">0 / 20</span>
+      </div>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+    <div class="input-group">
+      <label>gRNA Identifier <span class="label-hint">optional</span></label>
+      <input type="text" id="grna-id" placeholder="e.g. gRNA1, DREBpro-g5 …">
+    </div>
+
+    <div class="input-group" style="margin-bottom:4px;">
+      <label>BsaI Overhang Position <span class="label-hint">any 4 consecutive nt — default nt 9–12</span></label>
+      <div class="overhang-section">
+        <div class="overhang-viz" id="spacer-viz">
+          <span style="color:var(--muted); font-size:12px; letter-spacing:0; font-family:var(--sans);">Enter spacer above to preview</span>
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Position</span>
+            <strong id="pos-display">nt 9–12</strong>
+          </div>
+          <input type="range" id="oh-pos" min="5" max="13" value="9" step="1">
+        </div>
+      </div>
+      <div class="viz-legend">
+        <div class="viz-legend-item"><div class="viz-legend-dot" style="background:var(--primary);"></div> 4 bp overhang</div>
+        <div class="viz-legend-item"><div class="viz-legend-dot" style="background:var(--green);"></div> F-primer spacer region</div>
+        <div class="viz-legend-item"><div class="viz-legend-dot" style="background:var(--orange);"></div> R-primer spacer region</div>
+      </div>
+    </div>
+
+    <button class="btn" id="gen-btn" disabled>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      Generate Primers
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <div class="card reveal">
+      <div class="step-pill"><span class="num">2</span> Primer Sequences</div>
+
+      <div class="primer-block">
+        <div class="primer-label">
+          <span class="tag tag-f">Forward</span>
+          <span class="primer-name" id="f-name">—</span>
+        </div>
+        <div class="primer-seq-wrap" id="f-seq-wrap">
+          <div id="f-seq"></div>
+          <button class="copy-btn" onclick="copySeq('f')" title="Copy">⎘</button>
+        </div>
+      </div>
+
+      <div class="primer-block">
+        <div class="primer-label">
+          <span class="tag tag-r">Reverse</span>
+          <span class="primer-name" id="r-name">—</span>
+        </div>
+        <div class="primer-seq-wrap" id="r-seq-wrap">
+          <div id="r-seq"></div>
+          <button class="copy-btn" onclick="copySeq('r')" title="Copy">⎘</button>
+        </div>
+      </div>
+
+      <div class="seq-legend">
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:#b0bdd0;"></div> Random bases</div>
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:var(--amber);"></div> BsaI site (GGTCTC)</div>
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:var(--primary);"></div> 4 bp overhang</div>
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:var(--text);"></div> Spacer</div>
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:var(--green);"></div> gRNA scaffold</div>
+        <div class="seq-legend-item"><div class="seq-legend-dot" style="background:var(--orange);"></div> tRNA anchor</div>
+      </div>
+    </div>
+
+    <div class="card reveal">
+      <div class="step-pill"><span class="num">3</span> Validation Checks</div>
+      <div class="checks-grid" id="checks-grid"></div>
+    </div>
+
+    <div class="card reveal">
+      <div class="step-pill"><span class="num">4</span> Export — Plain Text</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>gRNA</th><th>Spacer (5′→3′)</th><th>Primer</th><th>Sequence (5′→3′)</th><th>Length</th>
+            </tr>
+          </thead>
+          <tbody id="plain-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History -->
+  <div id="history-section">
+    <div class="card">
+      <div class="step-pill" style="color:var(--muted);"><span class="num" style="background:var(--muted);">↺</span> Session History</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- Reference box -->
+  <div class="info-box">
+    <div class="info-box-title">Design Rules — Xie et al. 2015 (SI Methods, Table S3)</div>
+    <div class="info-row">
+      <span style="color:var(--green); font-weight:600;">F primer:</span>&nbsp;
+      <span style="color:#b0bdd0;">ta</span>·<span style="color:var(--amber); font-weight:600;">GGTCTCC</span>·<span style="color:var(--primary); font-weight:700;">[overhang 4 bp]</span><span style="color:var(--text);">[spacer nt(oh+4)–20]</span>·<span style="color:var(--green);">gttttagagctagaa</span>
+    </div>
+    <div class="info-row">
+      <span style="color:var(--orange); font-weight:600;">R primer:</span>&nbsp;
+      <span style="color:#b0bdd0;">cg</span>·<span style="color:var(--amber); font-weight:600;">GGTCTCA</span>·<span style="color:var(--primary); font-weight:700;">[RC overhang]</span><span style="color:var(--text);">[RC spacer nt1–(oh-1)]</span>·<span style="color:var(--orange);">tgcaccagccgggaa</span>
+    </div>
+    <div class="info-note">⚠ Forbidden overhangs: <strong>GGCA</strong> · <strong>AAAC</strong> — reserved for terminal adaptors in pRGE32 / pRGEB32</div>
+  </div>
+
+</div>
+<style>
+  .dev-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    font-family: var(--font-sans);
+    max-width: 660px;
+  }
+  .dev-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 20px 16px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+  }
+  .dev-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: #1a56db;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #fff;
+    flex-shrink: 0; letter-spacing: 0.5px;
+  }
+  .dev-header-text { flex: 1; }
+  .dev-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin: 0 0 3px; }
+  .dev-role { font-size: 12px; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+  .dev-badge {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: #e8effe; color: #1240a8;
+    border: 0.5px solid #c5d4f8;
+    padding: 3px 10px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .dev-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 0; }
+  .info-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 0;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .info-icon svg { width: 13px; height: 13px; }
+  .info-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--color-text-tertiary);
+    margin: 0 0 3px;
+  }
+  .info-value { font-size: 13px; color: var(--color-text-primary); margin: 0; line-height: 1.5; }
+  .info-value.mono { font-family: var(--font-mono); font-size: 12px; }
+  .cite-block {
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-left: 3px solid #1a56db;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px; margin-top: 2px;
+  }
+  .cite-text {
+    font-size: 12px; color: var(--color-text-secondary);
+    line-height: 1.65; margin: 0;
+  }
+  .cite-authors { color: var(--color-text-primary); font-weight: 500; }
+  .cite-journal { font-style: italic; color: var(--color-text-primary); }
+  .cite-doi {
+    display: inline-block; margin-top: 5px;
+    font-family: var(--font-mono); font-size: 11px;
+    color: #1a56db; text-decoration: none;
+  }
+  .cite-doi:hover { text-decoration: underline; }
+  .dev-footer {
+    padding: 9px 20px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-secondary);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-left { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--color-text-tertiary); }
+  .icar-dot { width: 6px; height: 6px; border-radius: 50%; background: #0a7c53; }
+  .footer-right { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-tertiary); }
+</style>
+
+<div class="dev-card">
+
+  <div class="dev-header">
+    <div class="dev-avatar">RR</div>
+    <div class="dev-header-text">
+      <p class="dev-name">Ramesh R</p>
+      <p class="dev-role">Genome Editing Lab · Division of Plant Physiology<br>ICAR–Indian Agricultural Research Institute, New Delhi</p>
+    </div>
+    <span class="dev-badge">Developer</span>
+  </div>
+
+  <div class="dev-body">
+
+    
+
+    
+
+    <div class="info-row">
+      <div class="info-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="1.8">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
+        </svg>
+      </div>
+      <div>
+        <p class="info-label">Reference</p>
+        <div class="cite-block">
+          <p class="cite-text">
+            <span class="cite-authors">Xie K, Minkenberg B, Yang Y</span> (2015) Boosting CRISPR/Cas9 multiplex editing capability with the endogenous tRNA-processing system.
+            <span class="cite-journal"> PNAS</span> 112(11): 3570–3575.
+          </p>
+          <a class="cite-doi" href="https://doi.org/10.1073/pnas.1420294112">doi: 10.1073/pnas.1420294112</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="dev-footer">
+    <div class="footer-left">
+      <div class="icar-dot"></div>
+      ICAR–IARI · New Delhi
+    </div>
+    <span class="footer-right">PTG Primer Designer · v1.0.0</span>
+  </div>
+
+</div>
+
+
+<script>
+function rc(seq) {
+  const comp = {A:'T',T:'A',G:'C',C:'G',a:'t',t:'a',g:'c',c:'g'};
+  return seq.split('').reverse().map(b => comp[b]||'N').join('');
+}
+
+let lastResult = null;
+let history = [];
+
+const spacerInput = document.getElementById('spacer-input');
+const charCounter = document.getElementById('char-counter');
+const errorMsg    = document.getElementById('error-msg');
+const ohSlider    = document.getElementById('oh-pos');
+const posDisplay  = document.getElementById('pos-display');
+const spacerViz   = document.getElementById('spacer-viz');
+const genBtn      = document.getElementById('gen-btn');
+const results     = document.getElementById('results');
+
+function validateSpacer(seq) {
+  seq = seq.toUpperCase().trim();
+  if (seq.length === 0) return { ok: false, msg: '' };
+  if (!/^[ACGT]+$/.test(seq)) return { ok: false, msg: 'Only A, C, G, T bases allowed.' };
+  if (seq.length !== 20) return { ok: false, msg: `Must be exactly 20 bp (current: ${seq.length} bp).` };
+  return { ok: true, seq };
+}
+
+function generatePrimers(spacer, ohStart) {
+  const ohIdx = ohStart - 1;
+  const overhang   = spacer.slice(ohIdx, ohIdx + 4);
+  const f_spacer   = spacer.slice(ohIdx);
+  const r_spacer5p = spacer.slice(0, ohIdx + 4);
+  const fwd = 'ta' + 'GGTCTCC' + f_spacer + 'gttttagagctagaa';
+  const rev = 'cg' + 'GGTCTCA' + rc(r_spacer5p) + 'tgcaccagccgggaa';
+  const isForbidden = ['GGCA','AAAC'].includes(overhang);
+  return { fwd, rev, overhang, ohIdx, isForbidden };
+}
+
+function renderViz(spacer, ohIdx) {
+  if (!spacer) {
+    spacerViz.innerHTML = '<span style="color:var(--muted);font-size:12px;letter-spacing:0;font-family:var(--sans);">Enter spacer above to preview</span>';
+    return;
+  }
+  spacerViz.innerHTML = spacer.split('').map((nt, i) => {
+    let cls = i >= ohIdx && i < ohIdx+4 ? 'oh' : i >= ohIdx+4 ? 'f-only' : 'r-only';
+    return `<span class="nt ${cls}">${nt}</span>`;
+  }).join('');
+}
+
+function coloredPrimer(type, seq, ohIdx, spacer) {
+  if (type === 'f') {
+    const oh = spacer.slice(ohIdx, ohIdx+4);
+    const sp = spacer.slice(ohIdx+4);
+    return `<span class="seq-random">ta</span><span class="seq-bsai">GGTCTCC</span><span class="seq-overhang">${oh}</span><span class="seq-spacer">${sp}</span><span class="seq-scaffold">gttttagagctagaa</span>`;
+  } else {
+    const rcp  = rc(spacer.slice(0, ohIdx+4));
+    const rc_oh = rcp.slice(0, 4);
+    const rc_sp = rcp.slice(4);
+    return `<span class="seq-random">cg</span><span class="seq-bsai">GGTCTCA</span><span class="seq-overhang">${rc_oh}</span><span class="seq-spacer">${rc_sp}</span><span class="seq-trna">tgcaccagccgggaa</span>`;
+  }
+}
+
+function renderChecks(spacer, overhang, fwd, rev, isForbidden) {
+  const checks = [
+    { icon: isForbidden?'⚠️':'✅', cls: isForbidden?'warn':'ok', name:'BsaI Overhang', val: overhang+(isForbidden?' — FORBIDDEN (adjust slider)':' — OK') },
+    { icon:'✅', cls:'ok', name:'Forward Length', val: fwd.length+' bp' },
+    { icon:'✅', cls:'ok', name:'Reverse Length', val: rev.length+' bp' },
+    { icon:'✅', cls:'ok', name:'gRNA Scaffold',  val:'gttttagagctagaa ✓' },
+    { icon:'✅', cls:'ok', name:'tRNA Anchor',    val:'tgcaccagccgggaa ✓' },
+    { icon:'✅', cls:'ok', name:'Spacer Encoded', val: spacer+' ✓' },
+  ];
+  document.getElementById('checks-grid').innerHTML = checks.map(c =>
+    `<div class="check-item ${c.cls}">
+       <div class="check-icon">${c.icon}</div>
+       <div><div class="check-name">${c.name}</div><div class="check-val">${c.val}</div></div>
+     </div>`).join('');
+}
+
+function renderTable(gid, spacer, fwd, rev) {
+  const lbl = gid||'gRNA';
+  document.getElementById('plain-tbody').innerHTML = `
+    <tr>
+      <td rowspan="2" style="vertical-align:middle;font-weight:700;color:var(--primary);">${lbl}</td>
+      <td rowspan="2" class="mono" style="vertical-align:middle;">${spacer}</td>
+      <td><span class="tag tag-f" style="font-size:10px;">F</span>&nbsp;${lbl}-F</td>
+      <td class="mono">${fwd}</td>
+      <td style="font-family:var(--mono);color:var(--muted);">${fwd.length}</td>
+    </tr>
+    <tr>
+      <td><span class="tag tag-r" style="font-size:10px;">R</span>&nbsp;${lbl}-R</td>
+      <td class="mono">${rev}</td>
+      <td style="font-family:var(--mono);color:var(--muted);">${rev.length}</td>
+    </tr>`;
+}
+
+function copySeq(type) {
+  if (!lastResult) return;
+  navigator.clipboard.writeText(type==='f'?lastResult.fwd:lastResult.rev).then(()=>{
+    const btn = document.querySelector(`#${type}-seq-wrap .copy-btn`);
+    btn.textContent='✓'; btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='⎘'; btn.classList.remove('copied');},1500);
+  });
+}
+window.copySeq = copySeq;
+
+function generate() {
+  const raw = spacerInput.value.toUpperCase().trim();
+  const val = validateSpacer(raw);
+  if (!val.ok) return;
+  const ohStart = parseInt(ohSlider.value, 10);
+  const gid = document.getElementById('grna-id').value.trim() || 'gRNA';
+  const { fwd, rev, overhang, ohIdx, isForbidden } = generatePrimers(val.seq, ohStart);
+  lastResult = { fwd, rev, spacer: val.seq, gid };
+  document.getElementById('f-name').textContent = gid+'-F';
+  document.getElementById('r-name').textContent = gid+'-R';
+  document.getElementById('f-seq').innerHTML = coloredPrimer('f', fwd, ohIdx, val.seq);
+  document.getElementById('r-seq').innerHTML = coloredPrimer('r', rev, ohIdx, val.seq);
+  renderChecks(val.seq, overhang, fwd, rev, isForbidden);
+  renderTable(gid, val.seq, fwd, rev);
+  results.classList.add('show','flash');
+  setTimeout(()=>results.classList.remove('flash'),500);
+  results.scrollIntoView({behavior:'smooth',block:'start'});
+  const now = new Date().toLocaleTimeString();
+  history.unshift({spacer:val.seq, gid, fwd, rev, time:now});
+  if(history.length>8) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const sec=document.getElementById('history-section');
+  const list=document.getElementById('history-list');
+  if(!history.length){sec.classList.remove('show');return;}
+  sec.classList.add('show');
+  list.innerHTML=history.map((h,i)=>`
+    <div class="history-item" onclick="loadHistory(${i})">
+      <span class="history-spacer">${h.spacer}</span>
+      <span class="history-meta">${h.gid} · ${h.time}</span>
+    </div>`).join('');
+}
+
+function loadHistory(i) {
+  const h=history[i];
+  spacerInput.value=h.spacer;
+  document.getElementById('grna-id').value=h.gid;
+  spacerInput.dispatchEvent(new Event('input'));
+}
+window.loadHistory=loadHistory;
+
+spacerInput.addEventListener('input', () => {
+  const raw=spacerInput.value.toUpperCase().trim();
+  const n=raw.length;
+  charCounter.textContent=`${n} / 20`;
+  const val=validateSpacer(raw);
+  if(n===0){
+    spacerInput.className='';
+    errorMsg.classList.remove('show');
+    charCounter.className='char-counter';
+    genBtn.disabled=true;
+    renderViz('',parseInt(ohSlider.value)-1);
+    return;
+  }
+  if(val.ok){
+    spacerInput.className='valid';
+    errorMsg.classList.remove('show');
+    charCounter.className='char-counter ok';
+    genBtn.disabled=false;
+    renderViz(raw,parseInt(ohSlider.value)-1);
+  } else {
+    spacerInput.className='invalid';
+    errorMsg.textContent=val.msg;
+    errorMsg.classList.toggle('show',!!val.msg);
+    charCounter.className='char-counter bad';
+    genBtn.disabled=true;
+    renderViz(raw,parseInt(ohSlider.value)-1);
+  }
+});
+
+ohSlider.addEventListener('input', () => {
+  const pos=parseInt(ohSlider.value,10);
+  posDisplay.textContent=`nt ${pos}–${pos+3}`;
+  const raw=spacerInput.value.toUpperCase().trim();
+  if(raw.length>0) renderViz(raw,pos-1);
+});
+
+genBtn.addEventListener('click', generate);
+spacerInput.addEventListener('keydown', e=>{if(e.key==='Enter'&&!genBtn.disabled) generate();});
+</script>
+</body>
+</html>
